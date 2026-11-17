@@ -1,0 +1,22 @@
+=== Confirmation v2: Qwen/Qwen2.5-1.5B-Instruct, read 26, write 22, 60 fresh items known to the model ===
+
+                      none  recall 0.02   said own cue  0   KL question 0.00   KL paragraph 0.00
+                in_context  recall 0.18   said own cue 21   KL question nan   KL paragraph nan
+                   primary  recall 0.30   said own cue 16   KL question 1.16   KL paragraph 0.00
+           residue_K8_s0.5  recall 0.30   said own cue 10   KL question 0.25   KL paragraph 0.00
+           residue_K8_s2.0  recall 0.33   said own cue 16   KL question 3.16   KL paragraph 0.00
+                residue_K1  recall 0.32   said own cue 12   KL question 0.58   KL paragraph 0.00
+                residue_K3  recall 0.30   said own cue 17   KL question 1.13   KL paragraph 0.00
+                  absolute  recall 0.05   said own cue  1   KL question 3.07   KL paragraph 0.00
+                       cue  recall 0.00   said own cue 44   KL question 0.71   KL paragraph 0.00
+                    oracle  recall 0.82   said own cue  0   KL question 0.66   KL paragraph 0.00
+                  shuffled  recall 0.00   said own cue  2   KL question 1.17   KL paragraph 0.00
+    closed_loop_throughout  recall 0.05   said own cue  2   KL question 0.08   KL paragraph 0.08
+
+  primary: said a word from its held bag in 45/60
+
+[PASS] C1 a derived thought carried outside the tokens: primary 0.30 vs none 0.02
+[PASS] C2 the residue, not the loud state: primary 0.30 vs absolute 0.05
+[PASS] C3 the thought, not the cue: primary 0.30 vs cue 0.00
+[PASS] C4 it is this item's thought: shuffled 0.00 (none 0.02), primary-shuffled +0.30
+[PASS] C5 carried beats re-deriving in context: primary 0.30 vs in-context 0.18

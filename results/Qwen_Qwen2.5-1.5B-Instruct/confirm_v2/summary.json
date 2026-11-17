@@ -1,0 +1,29 @@
+{
+ "gates": [
+  {
+   "gate": "C1 a derived thought carried outside the tokens",
+   "value": "primary 0.30 vs none 0.02",
+   "pass": true
+  },
+  {
+   "gate": "C2 the residue, not the loud state",
+   "value": "primary 0.30 vs absolute 0.05",
+   "pass": true
+  },
+  {
+   "gate": "C3 the thought, not the cue",
+   "value": "primary 0.30 vs cue 0.00",
+   "pass": true
+  },
+  {
+   "gate": "C4 it is this item's thought",
+   "value": "shuffled 0.00 (none 0.02), primary-shuffled +0.30",
+   "pass": true
+  },
+  {
+   "gate": "C5 carried beats re-deriving in context",
+   "value": "primary 0.30 vs in-context 0.18",
+   "pass": true
+  }
+ ]
+}
