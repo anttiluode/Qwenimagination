@@ -83,6 +83,45 @@ Scope: one 1.5B model, one-token concepts, a supplied instruction to think
 of something, a late layer (26 of 28, nearer "about to say" than the
 paper's mid-network workspace).
 
+## v3: picking the thought out of the bag (failed, 0 of 3 gates)
+
+[PICK_PROTOCOL.md](PICK_PROTOCOL.md), committed before the run. Four rules
+for choosing which held concepts are *the* thought were compared on 112
+seen items, and the winner was tested on **50 fresh items**:
+
+| rule | development (seen) | fresh items |
+|---|---|---|
+| A, v2: above the usual hold | 0.30 | **0.22** |
+| C, inner: minus what merely reading the words evokes | 0.25 | 0.12 |
+| M, tuft: A gated by "was this mine?" | 0.32 (chosen) | 0.18 |
+| D, late: still growing in the last layers | 0.29 | 0.18 |
+| none / cue / another item's state / in-context | | 0.02 / 0.00 / 0.02 / 0.08 |
+| the answer itself (oracle) | | 0.68 |
+
+- **No new rule beat v2.** The tuft rule won development by 0.02, which is
+  noise. The protocol should have required a margin before replacing A.
+  That's my error. On fresh items it was 0.04 worse (CI −0.10..+0.00).
+- **"Inner minus outer" made things worse:** −0.10 (CI −0.20..−0.02). The
+  risk named in the protocol happened. Just *reading* "the capital city of
+  France" already evokes Paris, so subtracting the reading subtracts the
+  answer. In this model, being asked to think adds the *mode* (picture,
+  imagine) more than the content: the content arrives on reading.
+- **v2's carried state replicated on a third item set:** A beat none by
+  +0.20 (CI +0.08..+0.32), the cue by +0.22 and another item's state by
+  +0.20, all with CIs clear of zero. It's lower than v2's 0.30. This item
+  set has strong default answers: with no state the model said *never*,
+  *always* or *above* in 50 of 50 cases, words that are answers or cues
+  of the opposite-word items.
+- **The bag problem is still there.** Under A the model said a word from
+  the held bag in 31 of 50 cases, but the right one in 11.
+
+**What this suggests:** a bag can't say which of its members is the answer.
+*Paris* and *France* are both in it, and only the relation "capital of"
+says which is the thought. A bag of concepts has no relations. Picking
+the thought needs something that binds a concept to its role, the
+multiplicative (c₃) term the earlier machines kept running into, and not
+another way of ranking the bag.
+
 ## The experiment (v2, as confirmed)
 
 ```
