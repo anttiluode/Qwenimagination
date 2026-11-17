@@ -222,6 +222,8 @@ route. `python -m pytest -q tests` reruns the plumbing checks offline.
 on the saved lens (about 15–20 minutes, estimated).
 `python confirm.py --model Qwen/Qwen2.5-1.5B-Instruct` runs the v2
 confirmation on fresh items (a few minutes of lens, then the items).
+`python pick.py --model Qwen/Qwen2.5-1.5B-Instruct` runs v3, picking the
+thought out of the bag ([PICK_PROTOCOL.md](PICK_PROTOCOL.md)).
 
 ## v1 gates (for the record)
 
