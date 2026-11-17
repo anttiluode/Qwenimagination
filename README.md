@@ -83,17 +83,18 @@ Scope: one 1.5B model, one-token concepts, a supplied instruction to think
 of something, a late layer (26 of 28, nearer "about to say" than the
 paper's mid-network workspace).
 
-## The experiment
+## The experiment (v2, as confirmed)
 
 ```
  HOLD (context 1)                          RECALL (context 2, a fresh one)
  "Silently think of the capital city of     a neutral paragraph about painting
-  France. Don't say it."                    a fence ... "what were you thinking
- "Okay. I am holding it in my mind."        of earlier?"   "I was thinking of ___"
-        │                                            ▲
-        └── read the J-space ── held state ──────────┘  written into the residual
-            (the 8 concepts the model                   stream at every token
-             itself put there)
+  France. Don't say it."                    a fence ...  │  "what was the answer you
+ "Okay. I am holding it in my mind."                     │   were silently holding?"
+        │                                   nothing      │  "The answer was ___"
+        │                                   written here ▼
+        └─ read J-space, layer 26                  release the held state
+           minus the usual hold  ─── held ───►  into layer 22, from the
+           = Paris, France, London, ...            question onward
 ```
 
 - **The answer is derived, never written.** "Paris" is not in either
