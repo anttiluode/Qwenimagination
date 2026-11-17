@@ -27,6 +27,9 @@ class Lm:
     def chat(self, messages, prefix=""):
         """messages: list of (role, text). Ends with an open assistant turn
         that already contains `prefix`."""
+        return self.tok(self.chat_text(messages, prefix), add_special_tokens=False)["input_ids"]
+
+    def chat_text(self, messages, prefix=""):
         msgs = [{"role": r, "content": t} for r, t in messages]
         try:
             text = self.tok.apply_chat_template(
@@ -35,8 +38,7 @@ class Lm:
         except TypeError:
             text = self.tok.apply_chat_template(
                 msgs, tokenize=False, add_generation_prompt=True)
-        text = text + prefix
-        return self.tok(text, add_special_tokens=False)["input_ids"]
+        return text + prefix
 
     def encode(self, text):
         return self.tok(text, add_special_tokens=False)["input_ids"]

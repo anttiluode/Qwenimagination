@@ -59,24 +59,69 @@ Because pushing harder always helps recall but also disturbs the model,
 every route is compared **at matched damage**: the KL between the model's
 next-token distributions with and without the injection.
 
-## Status: protocol committed, real run pending
+## Result of the pre-registered run: 0 of 5 gates
 
-The workspace that built this couldn't reach Hugging Face, so **nothing has
-been run on a real Qwen yet**. The protocol ([PROTOCOL.md](PROTOCOL.md)) was
-pushed before any real-model run, with every constant fixed in advance and
-predictions written down, including that **G3, the closed loop beating the
-open one, will probably fail**.
+Qwen2.5-1.5B-Instruct, 38 test items, read layer 22, write layer 18
+([summary](results/Qwen_Qwen2.5-1.5B-Instruct/summary.json)). Every gate failed:
 
-What *has* been checked, on a random-weight Qwen-shaped model (`tests/`):
+| Gate | Needed | Got |
+|---|---|---|
+| G0a answer in the top 10 of the hold | 40% | 24% (specific to its own hold in **100%**) |
+| G0b oracle write at KL ≤ 0.5 | 0.50 | 0.26 |
+| G1 J-state vs none | +0.20 | 0.03 vs 0.00 |
+| G2 J-state vs cue | +0.10 | 0.03 vs 0.00 |
+| G3 closed vs open loop | +0.10 | 0.00 / −0.03 |
 
-- the lens equals a brute-force finite-difference gradient;
-- a write moves exactly the chosen reads by exactly the asked amount;
-- a closed loop with zero gain is bit-identical to no injection;
-- a saturated closed loop equals the open loop;
-- the recall context never contains the hold;
-- the full pipeline runs, and on random weights it stops at G0, as it
-  should: random weights can't derive "Paris", but writing "Paris" directly
-  still works (oracle 1.00).
+The failure is mostly mine, in the design, and the data show where:
+
+1. **The question couldn't be passed.** "What were you thinking of?" with
+   the prefix "I was thinking of" makes the model name the *subject*. Even
+   with the hold in context, it named the cue in 26 of 38 items ("Japan"
+   for Tokyo, "sky" for blue). The answer was ranked first in only 5/38,
+   but in the top two in 30/38. With a ceiling of 0.13, G1 (+0.20) was
+   practically out of reach before anything was carried.
+2. **The held state was the act of thinking, not the thought.** The eight
+   strongest J-space concepts during a hold were nearly the same every
+   time: *thought* (53 of 58 holds), *imagine*, *mind*, *think* (48),
+   *brain* (47), *picture* (44), *memory*. Four of those never appear in the
+   prompt. The answer was in the held eight in only 7/38. It was there,
+   weakly and specifically (100%), under a loud and constant "I am holding
+   a thought".
+3. **Writing "poised to say" directions all the time is expensive.** Lens
+   directions push the model to say the word. Written at every token of
+   the paragraph, even the answer itself needed KL 2.4 per position to
+   work in 36/38. A thought held silently shouldn't be in its spoken form
+   while the model reads something else.
+
+Also, the answer's rank kept improving above the pre-registered layer band
+(top-10 hits: 9/38 at layer 22, 14/38 at layer 27).
+
+**The one finding I didn't predict is point 2.** During a hold, the
+workspace of a 1.5B model carries a strong, almost content-free *mode*
+signal (thought, imagine, picture, memory), with the content far weaker
+underneath. That is the paper's observation that the mental operation
+shows up before its result, here in a small model, and it matches the
+"imagined" tag the SyntheticQualia line said was missing. It's an
+observation from one run, not a tested claim.
+
+### Diagnostic v2 (post hoc, not a confirmation)
+
+`diagnose.py` reuses the v1 lens and changes exactly the three faults: it
+asks for the answer ("The answer was"); it holds the concepts that rose
+above *the usual hold*, a slow baseline of what holding a thought normally
+looks like (the residue idea again); and it can keep the state outside
+until the question and release it only there. It runs on items already
+seen, so it can only show which fix matters. Any claim needs a fresh
+pre-registered run on new items.
+
+## The original plan (kept as written)
+
+The protocol ([PROTOCOL.md](PROTOCOL.md)) was pushed before any real-model
+run, with every constant fixed in advance. Its predictions included that
+G3 would probably fail. Plumbing checks on a random-weight model (`tests/`):
+the lens matches a finite-difference gradient, writes move exactly the
+chosen reads, the closed loop at zero gain is identical to no injection,
+and a saturated closed loop equals the open loop.
 
 ## Run it
 
@@ -94,6 +139,8 @@ layers on dev items, runs every route on every item (estimated half an hour on a
 and prints the pre-registered verdict. `demo.py` shows it in words: the
 held state, then the model's free answer in a fresh context under each
 route. `python -m pytest -q tests` reruns the plumbing checks offline.
+`python diagnose.py --model Qwen/Qwen2.5-1.5B-Instruct` runs diagnostic v2
+on the saved lens (about 15–20 minutes, estimated).
 
 ## Gates
 
