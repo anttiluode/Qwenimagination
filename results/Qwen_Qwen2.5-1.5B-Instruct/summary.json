@@ -1,0 +1,202 @@
+{
+ "model": "Qwen/Qwen2.5-1.5B-Instruct",
+ "l_read": 22,
+ "l_inj": 18,
+ "n_test": 38,
+ "n_dev": 20,
+ "gates": {
+  "G0a workspace holds the derived thought": {
+   "value": "top-10 hit 0.24 (null hold 0.00), specific 1.00",
+   "rule": "hit >= 0.40 and specific >= 0.80",
+   "pass": false
+  },
+  "G0b the write channel works": {
+   "value": "oracle recall 0.26 at budget 0.5",
+   "rule": ">= 0.50",
+   "pass": false
+  },
+  "G1 a thought carried outside the tokens": {
+   "value": "jstate_open 0.03 vs none 0.00  (diff CI +0.00..+0.08)",
+   "rule": "J-state >= none + 0.20 at budget 0.2",
+   "pass": false
+  },
+  "G2 the thought, not the cue": {
+   "value": "jstate_open 0.03 vs cue 0.00  (diff CI +0.00..+0.08)",
+   "rule": "J-state >= cue + 0.10 at budget 0.2",
+   "pass": false
+  },
+  "G3 the closed loop earns its place": {
+   "value": "closed - open by budget: 0.02:+0.00, 0.05:+0.00, 0.1:+0.00, 0.2:-0.03, 0.5:-0.03",
+   "rule": "closed >= open - 0.02 at every budget, and >= open + 0.10 at one",
+   "pass": false
+  }
+ },
+ "recall_by_budget": {
+  "oracle": {
+   "0.02": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.05": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.1": {
+    "strength": 0.5,
+    "recall": 0.15789473684210525,
+    "damage": 0.06907857442427867
+   },
+   "0.2": {
+    "strength": 0.5,
+    "recall": 0.15789473684210525,
+    "damage": 0.06907857442427867
+   },
+   "0.5": {
+    "strength": 1.0,
+    "recall": 0.2631578947368421,
+    "damage": 0.18976356642700634
+   }
+  },
+  "cue": {
+   "0.02": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.05": {
+    "strength": 0.5,
+    "recall": 0.0,
+    "damage": 0.06620730916160698
+   },
+   "0.1": {
+    "strength": 0.5,
+    "recall": 0.0,
+    "damage": 0.06620730916160698
+   },
+   "0.2": {
+    "strength": 1.0,
+    "recall": 0.0,
+    "damage": 0.2130335534732838
+   },
+   "0.5": {
+    "strength": 1.0,
+    "recall": 0.0,
+    "damage": 0.2130335534732838
+   }
+  },
+  "snapshot": {
+   "0.02": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.05": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.1": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.2": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.5": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   }
+  },
+  "jstate_open": {
+   "0.02": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.05": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.1": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.2": {
+    "strength": 0.5,
+    "recall": 0.02631578947368421,
+    "damage": 0.15690992400050163
+   },
+   "0.5": {
+    "strength": 0.5,
+    "recall": 0.02631578947368421,
+    "damage": 0.15690992400050163
+   }
+  },
+  "jstate_closed": {
+   "0.02": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.05": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.1": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.2": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.5": {
+    "strength": 0.05,
+    "recall": 0.0,
+    "damage": 0.28441602187721354
+   }
+  },
+  "jstate_closed_surprise": {
+   "0.02": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.05": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.1": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.2": {
+    "strength": null,
+    "recall": 0.0,
+    "damage": 0.0
+   },
+   "0.5": {
+    "strength": 0.05,
+    "recall": 0.0,
+    "damage": 0.24520687915776906
+   }
+  }
+ },
+ "none": 0.0,
+ "in_context": 0.13157894736842105,
+ "chance": 0.008695652173913044,
+ "g0_passed": false
+}
