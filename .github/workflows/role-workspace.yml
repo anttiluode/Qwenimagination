@@ -1,0 +1,17 @@
+name: Role-bound workspace checks
+on:
+  push:
+    branches: [main, sol-v4-role-bound-workspace]
+  pull_request:
+jobs:
+  binding-and-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check v4 syntax (no model download)
+        run: python -m py_compile role.py qimag/role_memory.py tests/test_role_memory.py
+      - name: Test reversible role codes and branch isolation
+        run: python -m unittest discover -s tests -p 'test_role_memory.py' -v

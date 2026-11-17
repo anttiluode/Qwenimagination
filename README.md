@@ -19,6 +19,48 @@ that lives outside the token stream**, carried by a small loop, the way the
 WaveComputer / ApicalRuleReversalMachine / WaveCortex / TuftSheet line
 carried a belief between events.
 
+## New experiment: V4 role-bound working space (ready to run)
+
+**Question:** Can the small neural state that carried *one* derived answer
+also carry **two distinct answers with recoverable roles**?
+
+V3 showed that a bag of concepts is not enough to identify what each
+concept *means* in a relationship. The v4 experiment implements a **single
+non-text memory vector** with two role addresses, *first* and *second*.
+It stores two separately derived J-space residues, then asks Qwen for one
+of the two after a fresh, unrelated context.
+
+- **Bound**: recover the requested role from one packed vector.
+- **Unbound**: simply add both bags, losing which is which.
+- **Wrong role**: deliberately retrieve the other thought.
+- **Single state, no state, cue, oracle, in-context**: honest controls.
+- **Fork**: an isolated, externally supplied hypothetical update with an
+  explicitly marked *imagined* source (unit-tested plumbing, **not**
+  learned imagination).
+
+These role transformations are engineered by us (orthogonal
+signed-permutation/Hadamard maps). They are *not* Qwen learning relations,
+and no real Qwen v4 outcome has been measured yet. All v1-v3 results
+below are preserved; the v4 gate thresholds are fixed in
+[ROLE_PROTOCOL.md](ROLE_PROTOCOL.md).
+
+**Run on the RTX 3060 (after a quick smoke check):**
+
+    python3.13 -m unittest discover -s tests -p "test_role_memory.py" -v
+    python3.13 role.py --model Qwen/Qwen2.5-1.5B-Instruct --max-pairs 2
+    python3.13 role.py --model Qwen/Qwen2.5-1.5B-Instruct
+
+The first run extends and caches the lens; full results go to
+`results/Qwen_Qwen2.5-1.5B-Instruct/roles_v4/`.
+A smoke run is **not** confirmation.
+
+The larger program is mapped in
+[INNER_WORLD_ROADMAP.md](INNER_WORLD_ROADMAP.md): learned relational roles,
+one world-state shared by perception and simulation, source attribution,
+counterfactual action, and eventually self-directed internal inquiry.
+
+---
+
 ## Result: confirmed on fresh items (v2, 5 of 5 gates)
 
 The first pre-registered run (v1) failed every gate, mostly through my
