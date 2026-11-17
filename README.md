@@ -83,8 +83,8 @@ The failure is mostly mine, in the design, and the data show where:
 2. **The held state was the act of thinking, not the thought.** The eight
    strongest J-space concepts during a hold were nearly the same every
    time: *thought* (53 of 58 holds), *imagine*, *mind*, *think* (48),
-   *brain* (47), *picture* (44), *memory*. Four of those never appear in the
-   prompt. The answer was in the held eight in only 7/38. It was there,
+   *brain* (47), *picture* (44), *memory*. Five of those never appear in the
+   prompt (thought, imagine, brain, picture, memory). The answer was in the held eight in only 7/38. It was there,
    weakly and specifically (100%), under a loud and constant "I am holding
    a thought".
 3. **Writing "poised to say" directions all the time is expensive.** Lens
