@@ -19,6 +19,70 @@ that lives outside the token stream**, carried by a small loop, the way the
 WaveComputer / ApicalRuleReversalMachine / WaveCortex / TuftSheet line
 carried a belief between events.
 
+## Result: confirmed on fresh items (v2, 5 of 5 gates)
+
+The first pre-registered run (v1) failed every gate, mostly through my
+design. A diagnostic found the three faults. A second protocol
+([CONFIRM_PROTOCOL.md](CONFIRM_PROTOCOL.md)) froze the fixes and was pushed
+before running on **60 fresh items** the model knows, none seen while
+designing. Qwen2.5-1.5B-Instruct, read layer 26, write layer 22
+([rows](results/Qwen_Qwen2.5-1.5B-Instruct/confirm_v2/rows.jsonl)):
+
+| route (released only at the question) | recall | KL on the paragraph |
+|---|---|---|
+| none | 0.02 | 0 |
+| hold kept in the conversation (in-context) | 0.18 | – |
+| **carried residue (primary)** | **0.30** | **0** |
+| loudest 8 concepts (v1's selection) | 0.05 | 0 |
+| the cue word ("France") | 0.00 (said the cue 44/60) | 0 |
+| another item's residue (shuffled) | 0.00 | 0 |
+| the answer word itself (oracle) | 0.82 | 0 |
+| closed loop, written throughout | 0.05 | 0.08 |
+
+| gate | difference (95% bootstrap CI) | |
+|---|---|---|
+| C1 carried vs none | +0.28 (+0.17..+0.40) | pass |
+| C2 residue vs loudest concepts | +0.25 (+0.15..+0.37) | pass |
+| C3 thought vs cue | +0.30 (+0.18..+0.42) | pass |
+| C4 own vs another item's state | +0.30 (+0.18..+0.42) | pass |
+| C5 carried vs in-context | +0.12 (−0.03..+0.27) | pass by its rule, but the CI includes 0 |
+
+**What this shows.** A thought the model *derived* and never wrote ("the
+capital city of …" → the city) can be lifted out of its workspace, kept
+outside the tokens through an unrelated paragraph, and released when it's
+asked for. The paragraph is untouched. The model then names it about a
+third of the time, against 2% without the state and 0% with the bare cue.
+The thought is the **residue of the workspace against its usual holding
+state**: the J-space concepts that rose above what holding a thought
+normally looks like. The loudest concepts are the act of holding itself
+(*thought, imagine, picture, mind*), and they carry almost nothing.
+
+**The state carries this item's content, not a general "remember" push.**
+Another item's state never produced this item's answer, and in 20 of 60
+cases it made the model name *the other item's* answer.
+
+**Where it stops.** The answer is in the held bag 57/60 times, first in
+18, top three in 31. The model says a word from the bag, but often a
+neighbour or the cue: *cheese* comes back as *cheese*, but *pen* comes back
+as *ink*, *lungs* as *chest*, *December* as *January*. Writing the answer
+alone gets 0.82, so the gap between 0.30 and 0.82 is choosing the thought
+from its neighbourhood. That's the bag-of-concepts limit of the J-space
+paper, now measured. Holding fewer concepts (K = 1: 0.32) didn't fix it;
+I predicted it would.
+
+**Not earned:** the closed loop (0.05). What works is a still residue
+released at the right moment, not a loop that keeps it alive.
+
+**An observation, not tested:** 21 of 60 held bags contain *picture*,
+*photographs* or *imagine* after the usual hold is subtracted. All 21 are
+things you can picture (elephant, beach, rainbow, lava, queen, desert).
+None of the abstract items (late, weak, south, January, gravity, lose)
+have them.
+
+Scope: one 1.5B model, one-token concepts, a supplied instruction to think
+of something, a late layer (26 of 28, nearer "about to say" than the
+paper's mid-network workspace).
+
 ## The experiment
 
 ```
@@ -59,7 +123,7 @@ Because pushing harder always helps recall but also disturbs the model,
 every route is compared **at matched damage**: the KL between the model's
 next-token distributions with and without the injection.
 
-## Result of the pre-registered run: 0 of 5 gates
+## History: the first pre-registered run (v1) failed 0 of 5 gates
 
 Qwen2.5-1.5B-Instruct, 38 test items, read layer 22, write layer 18
 ([summary](results/Qwen_Qwen2.5-1.5B-Instruct/summary.json)). Every gate failed:
@@ -158,7 +222,7 @@ on the saved lens (about 15–20 minutes, estimated).
 `python confirm.py --model Qwen/Qwen2.5-1.5B-Instruct` runs the v2
 confirmation on fresh items (a few minutes of lens, then the items).
 
-## Gates
+## v1 gates (for the record)
 
 | | Gate | Rule (test items) |
 |---|---|---|
