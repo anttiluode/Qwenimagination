@@ -12,7 +12,7 @@ diagnostic (`diagnose.py`, items already seen) found three design faults:
 - writing "about to say" directions over the whole paragraph was costly.
 
 It also found a fix for each. Those fixes were chosen while looking at v1
-items, so they can't be confirmed on them. This run uses **73 fresh items**
+items, so they can't be confirmed on them. This run uses **72 fresh items**
 (`qimag/items_v2.py`). None of their answers or cues was an answer or cue
 in v1.
 

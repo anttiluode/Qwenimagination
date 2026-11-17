@@ -125,7 +125,7 @@ Released only at the question, it costs the paragraph nothing (KL 0.00).
 With the hold in context and the new question, the model scored 0.21: the
 state carried from outside beat the model re-deriving it in context.
 
-`confirm.py` tests this on 73 fresh items with every choice frozen in
+`confirm.py` tests this on 72 fresh items with every choice frozen in
 [CONFIRM_PROTOCOL.md](CONFIRM_PROTOCOL.md), pushed before it ran.
 
 ## The original plan (kept as written)
