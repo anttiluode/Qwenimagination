@@ -104,7 +104,8 @@ class StubTokenizer:
 def load_stub(device, seed=0, layers=8, d=64):
     from transformers import Qwen2Config, Qwen2ForCausalLM
     from . import items as I
-    words = [d_ for d_, _, _ in I.ITEMS] + [t for _, t, _ in I.ITEMS] + \
+    from .items_v2 import ITEMS_V2
+    words = [w for it in ITEMS_V2 for w in it] + [d_ for d_, _, _ in I.ITEMS] + [t for _, t, _ in I.ITEMS] + \
         [c for _, _, c in I.ITEMS] + I.DECOYS + I.FILLERS + I.CALIBRATION + \
         [I.HOLD_PROMPT, I.HOLD_REPLY, I.NULL_HOLD_PROMPT, I.ASK, I.ANSWER_PREFIX,
          "user assistant system"]

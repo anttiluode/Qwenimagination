@@ -114,6 +114,20 @@ until the question and release it only there. It runs on items already
 seen, so it can only show which fix matters. Any claim needs a fresh
 pre-registered run on new items.
 
+### Diagnostic result, and the confirmation run
+
+On v1 items (so nothing confirmed): subtracting the usual hold put the
+answer in the top 10 of the hold reading in **37/38** at layer 26 (14/38
+without it). The answer is in the held bag almost always (top 3 in
+34/38). The model says a word from the bag, but often a neighbour
+("Tokyo" for Cairo) or the cue. Recall went from 0.08–0.11 to 0.32–0.37.
+Released only at the question, it costs the paragraph nothing (KL 0.00).
+With the hold in context and the new question, the model scored 0.21: the
+state carried from outside beat the model re-deriving it in context.
+
+`confirm.py` tests this on 73 fresh items with every choice frozen in
+[CONFIRM_PROTOCOL.md](CONFIRM_PROTOCOL.md), pushed before it ran.
+
 ## The original plan (kept as written)
 
 The protocol ([PROTOCOL.md](PROTOCOL.md)) was pushed before any real-model
@@ -141,6 +155,8 @@ held state, then the model's free answer in a fresh context under each
 route. `python -m pytest -q tests` reruns the plumbing checks offline.
 `python diagnose.py --model Qwen/Qwen2.5-1.5B-Instruct` runs diagnostic v2
 on the saved lens (about 15–20 minutes, estimated).
+`python confirm.py --model Qwen/Qwen2.5-1.5B-Instruct` runs the v2
+confirmation on fresh items (a few minutes of lens, then the items).
 
 ## Gates
 
