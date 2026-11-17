@@ -1,0 +1,16 @@
+=== v3 selection, Qwen/Qwen2.5-1.5B-Instruct: chosen rule M_tuft, 50 fresh items ===
+
+         none  recall 0.02
+   in_context  recall 0.08
+      A_usual  recall 0.22   answer first 0.20  in top 3 0.68
+      C_inner  recall 0.12   answer first 0.16  in top 3 0.44
+       M_tuft  recall 0.18   answer first 0.20  in top 3 0.62
+       D_late  recall 0.18   answer first 0.20  in top 3 0.58
+    chosen_K1  recall 0.20
+          cue  recall 0.00
+     shuffled  recall 0.02
+       oracle  recall 0.68
+
+[FAIL] S1 the chosen rule picks better than v2's: M_tuft 0.18 vs A_usual 0.22  (diff -0.04, CI -0.10..+0.00)
+[FAIL] S2 it still carries this item's thought: vs none 0.02, cue 0.00, shuffled 0.02
+[FAIL] S3 it puts the answer first more often: answer first 0.20 vs A_usual 0.20
