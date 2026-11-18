@@ -145,13 +145,29 @@ Moving the single write 25 tokens upstream cost 44 correct choices (paired diffe
 
 [Timing protocol](TIMING.md) · [Full rows](results/Qwen_Qwen2.5-1.5B-Instruct/timing_v6/full.json).
 
-## V7: can a later question use the carried content?
+## V7: can a later question use the carried content? (inconclusive)
 
-Write once before the question, then ask for the item's category. The meanings of answer letters A and B reverse between questions asked from copies of the same stored state. The derived bag, swapped bag, empty slot, printed word, native-token patch, and an external classifier are compared on the same 40 evaluation items. The classifier is trained on 20 other items. Trained-model results are pending.
+Write once before the question, then ask for the item's category. The meanings of answer letters A and B reverse between questions asked from copies of the same stored state. The derived bag, swapped bag, empty slot, printed word, native-token patch, and an external classifier are compared on the same 40 evaluation items. The classifier is trained on 20 other items.
 
-    python3.13 category_transfer.py
+**Result: every Qwen arm scored exactly 0.50, and the test never got started.** Qwen answered "A" in all 400 decisions, in every arm, by 1 to 6 logits, including when the word was printed in the prompt. Reversing the letter meaning turns "always A" into exactly 50%. With the letter bias removed (each pair compared under both mappings), the printed word reaches only about 0.60. The protocol's first check, that the printed word can do the task, failed, so the activation arms say nothing either way. The external reader on the same bags got **0.91**.
 
-[Protocol, controls, and interpretation](CATEGORY.md).
+| Arm | Accuracy | Mean A−B lean | Pairs in the right direction (bias removed) |
+|---|---|---|---|
+| Printed word | 0.50 | 2.74 | 11/20 |
+| Real-token patch | 0.50 | 3.27 | 11/20 |
+| Derived write | 0.50 | 4.08 | 15/20 (95% CI touches 0) |
+| No write | 0.50 | 4.14 | – |
+| Reader on the bag | **0.91** | – | – |
+
+[Protocol](CATEGORY.md) · [Full rows](results/Qwen_Qwen2.5-1.5B-Instruct/category_v7/full.json).
+
+## V8: the same question, with the format checked first (ready to run)
+
+V8 picks the question format on the 20 training items using the printed word, and stops unless it reaches 0.85. Only then does it choose the write (layer, strength, answer position or whole question) on the same training items, and test the frozen choice on V7's 40 held-out items. Every answer is calibrated against the neutral prompt with no write, so a fixed lean can't score. Controls: no write, the same weights on random directions, the item word's own direction, and the 0.91 reader.
+
+    python3.13 category_v8.py
+
+[Protocol and predictions](CATEGORY_V8.md).
 
 ## V4: role-bound working space (built, not run)
 

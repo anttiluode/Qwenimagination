@@ -104,7 +104,7 @@ class StubTokenizer:
         return "".join(self.vocab[i] for i in ids)
 
 
-def load_stub(device, seed=0, layers=8, d=64):
+def load_stub(device, seed=0, layers=8, d=64, extra=()):
     from transformers import Qwen2Config, Qwen2ForCausalLM
     from . import items as I
     from .items_v2 import ITEMS_V2
@@ -112,7 +112,7 @@ def load_stub(device, seed=0, layers=8, d=64):
     words = [w for it in ITEMS_V2 + ITEMS_V3 for w in it] + ['Read this phrase: "', '". Okay, I have read it.'] + [d_ for d_, _, _ in I.ITEMS] + [t for _, t, _ in I.ITEMS] + \
         [c for _, _, c in I.ITEMS] + I.DECOYS + I.FILLERS + I.CALIBRATION + \
         [I.HOLD_PROMPT, I.HOLD_REPLY, I.NULL_HOLD_PROMPT, I.ASK, I.ANSWER_PREFIX,
-         "user assistant system"]
+         "user assistant system"] + list(extra)
     tok = StubTokenizer(words)
     torch.manual_seed(seed)
     cfg = Qwen2Config(vocab_size=len(tok.vocab), hidden_size=d, intermediate_size=2 * d,
