@@ -232,6 +232,14 @@ Thought − same-category: +0.18 (CI −0.03..+0.35). Thought − random: +0.08 
 
 [Protocol](THOUGHT_V10.md) · [Full rows](results/Qwen_Qwen2.5-1.5B-Instruct/thought_v10/full.json).
 
+## V11: read the thought in the mouth, install it in the room (ready to run)
+
+The thought is readable late (layer 26); a concept can steer a later question only early (layers 4–12). V11 takes the concepts and weights from the layer-26 read and swaps them in by their own layer-4–12 directions. Nothing is selected on training pairs: α = 1 and the top concept (K = 1) are fixed in advance; the whole bag (K = 8) is reported alongside.
+
+    python3.13 bridge_v11.py
+
+[Protocol and predictions](BRIDGE_V11.md).
+
 ## V4: role-bound working space (built, not run)
 
 *Status note (Nov 18):* not run on Qwen, and as built it couldn't test
