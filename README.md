@@ -285,6 +285,14 @@ The layer-26 bag held the item's own word for 37/40 items; the reader got the ca
 
 [Protocol and predictions](BRIDGE_V11.md) · [V11b rows](results/Qwen_Qwen2.5-1.5B-Instruct/bridge_v11b/full.json) · [First run's rows](results/Qwen_Qwen2.5-1.5B-Instruct/bridge_v11/full.json).
 
+## Rumination: the first thought loop outside the tokens (exploratory)
+
+The two pieces that held up, joined into a loop. A thought read at layer 26 is installed silently into a carrier prompt (swap across layers 4–12), Qwen's next thought is read at layer 26, and that one is installed in turn. No token carries the thought. With no fatigue it should get stuck (rumination); with fatigue on recent thoughts it should wander. The holding-mode words are tracked as an "imagined" tag. A check compares each silently installed concept's associations with those of the same word printed in the prompt.
+
+    python3.13 ruminate.py
+
+[What it does](RUMINATE.md).
+
 ## V4: role-bound working space (built, not run)
 
 *Status note (Nov 18):* not run on Qwen, and as built it couldn't test
