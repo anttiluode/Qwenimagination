@@ -304,13 +304,22 @@ The two pieces that held up, joined into a loop. A thought read at layer 26 is i
 
 **What it isn't.** The wool clue's seed was *rabbit* (with *sheep* fourth), so the loop starts from Qwen's thought, not the intended answer. The chain's movement comes from our selection rule (strongest concept minus fatigue); Qwen supplies the associations. The check shows a silent install is roughly as good as printing the word, not better. The "imagined" tag (mean reading of *picture, imagine, photographs…*) is small and follows content (highest on *camera*, +0.28), so it does not yet work as a tag.
 
-## Thinking toward a goal (exploratory, ready to run)
+## Thinking toward a goal (exploratory)
 
-The rumination loop, steered by Qwen instead of by our rule. At each step, the current thought's associations are the candidates; each is installed silently into a goal question ("Can the item above fly?"), and Qwen's own yes-minus-no picks the next thought. The search stops when Qwen says yes, and the found thought is checked with the word printed. Controls follow the strongest association, or pick at random. `think.html` shows every step.
+The rumination loop, steered by Qwen instead of by our rule. At each step, the current thought's associations are the candidates; each is installed silently into a goal question ("Item: stone. Can the item above fly?"), and Qwen's own yes-minus-no picks the next thought. Controls follow the strongest association, or pick at random. [What it does](THINK.md).
 
-    python3.13 think.py
+**Chains (8 steps; Qwen's yes-minus-no in brackets, higher is closer to "yes"):**
 
-[What it does](THINK.md).
+| Goal | Steered by Qwen's answers | Strongest association | Random |
+|---|---|---|---|
+| something you can eat? (seed: capital of France) | Paris → Madrid → Brazil → Spain → Italian → **pizza → bread → banana → potato** (−8.3 → −3.0) | Paris → France → Spain → Italy → … → Germany → Canada | Paris → Italian → … → Russia → Canada |
+| lives in water? (seed: ink clue) | ink → fingers → **fish → sea → water → lake** → bottle → glass → blood (best −1.9) | ink → pen → letter → paper → phone → radio → guitar → song | ink → art → guitar → song → piano → … |
+| bigger than a car? (seed: web clue) | spider → flies → smoke → fire → lightning → storm → **Saturn → Mars → Jupiter** (best −4.4) | spider → insect → flies → bird → bees → … → radio | spider → owl → teacher → school → … |
+| can it fly? (seed: wool clue) | rabbit → mouse → **bird → owl** → camera → ticket → fly → flies → smoke (best −5.8) | rabbit → rabbits → cows → … → winter → snow | rabbit → deer → fork → … |
+
+**What holds.** With Qwen's answers steering, the chain walked into the goal's territory in three of four runs (foods, water, planets), and in the fourth reached *bird* and *owl*. Both controls stayed near where they started. For the food goal the whole neighbourhood moved, not just the chosen word: the mean verdict over *all six* candidates offered went from −7.7 (steps 1–3) to −5.2 (steps 6–8), while both controls stayed at −7.7.
+
+**What doesn't.** No run ever stopped: Qwen never answered "yes" (best −1.9, for *sea*). With *stone* in the slot, an installed concept pushes the answer toward yes but does not overturn the slot word's "no", the same one-way limit V11b found for manufactured slots. Choosing the highest verdict at each step is the rule, so higher chosen verdicts are guaranteed; what is not guaranteed is that the *offered* candidates move toward the goal, which happened clearly for food, briefly for water (−6.6 → −3.7, then back), and not measurably for flying or size, where Qwen's verdicts barely varied (about ±0.5). One run per goal; exploratory.
 
 ## V4: role-bound working space (built, not run)
 
