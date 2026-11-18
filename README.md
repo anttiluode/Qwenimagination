@@ -304,6 +304,14 @@ The two pieces that held up, joined into a loop. A thought read at layer 26 is i
 
 **What it isn't.** The wool clue's seed was *rabbit* (with *sheep* fourth), so the loop starts from Qwen's thought, not the intended answer. The chain's movement comes from our selection rule (strongest concept minus fatigue); Qwen supplies the associations. The check shows a silent install is roughly as good as printing the word, not better. The "imagined" tag (mean reading of *picture, imagine, photographs…*) is small and follows content (highest on *camera*, +0.28), so it does not yet work as a tag.
 
+## Thinking toward a goal (exploratory, ready to run)
+
+The rumination loop, steered by Qwen instead of by our rule. At each step, the current thought's associations are the candidates; each is installed silently into a goal question ("Can the item above fly?"), and Qwen's own yes-minus-no picks the next thought. The search stops when Qwen says yes, and the found thought is checked with the word printed. Controls follow the strongest association, or pick at random. `think.html` shows every step.
+
+    python3.13 think.py
+
+[What it does](THINK.md).
+
 ## V4: role-bound working space (built, not run)
 
 *Status note (Nov 18):* not run on Qwen, and as built it couldn't test
