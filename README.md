@@ -213,13 +213,24 @@ Manufactured items start far more certain (about −10 against +1..+6 for living
 
 [Protocol](SWAP_V9.md) · [Full rows](results/Qwen_Qwen2.5-1.5B-Instruct/swap_v9/full.json).
 
-## V10: Qwen's own silent thought, swapped in (ready to run)
+## V10: Qwen's own silent thought, swapped in (negative, and it didn't carry the thought)
 
-V9's method with Qwen's thought in place of the word. Qwen silently thinks of something from a clue; its lens state is read **inside layers 4–12** (not 26), carried to a fresh conversation, and swapped into a slot holding a word of the other category ("Item: chair"). Then: "is it a living thing?". If the answer follows the thought, Qwen used its unspoken thought for a second inference. Controls: the true word swapped in (V9), the same weights on random directions, the thought swapped into a same-category slot, and an external reader on the same bag.
+V9's swap, with Qwen's thought read in layers 4–12 of the hold in place of a word. Strength and bag size chosen on 9 training pairs (K = 8, α = 2), tested on 20 held-out pairs. **Both gates failed.**
 
-    python3.13 thought_swap_v10.py
+| Held-out, swapped into a slot of the other category | Answers flipped | Mean shift away from the slot's category |
+|---|---|---|
+| Qwen's thought | 0.55 | +6.2 |
+| The true word (V9's control) | 0.48 | +4.3 |
+| Same weights, random directions | 0.48 | +5.5 |
+| Qwen's thought into a same-category slot | 0.38 | +3.7 |
 
-[Protocol and predictions](THOUGHT_V10.md).
+Thought − same-category: +0.18 (CI −0.03..+0.35). Thought − random: +0.08 (CI −0.13..+0.28). At α = 2 any direction breaks the answer, so random directions flip as often as the real word. α = 2 won stage 1 on 9 pairs by noise.
+
+**The thought was not in what we carried.** The bags read at layers 4–12 are the same words for every clue (*tail, road, truck, pizza, box, small*); the item's own word was in the top 8 for only 2–6 of 40 items at any of those layers. The v2 diagnostic had already measured where the thought appears: the answer is in the top 10 of the hold reading (minus the usual hold) for 4–8 of 38 items at layers 1–16, rising from layer 17, and 37 of 38 at layers 26–27.
+
+**The picture.** In this 1.5B model the place where a concept can be swapped in and used (V9: layers 4–12, at the word itself) comes before the place where a silently derived thought becomes readable (layers 17–27). The thought arrives after the room has closed.
+
+[Protocol](THOUGHT_V10.md) · [Full rows](results/Qwen_Qwen2.5-1.5B-Instruct/thought_v10/full.json).
 
 ## V4: role-bound working space (built, not run)
 
