@@ -19,48 +19,6 @@ that lives outside the token stream**, carried by a small loop, the way the
 WaveComputer / ApicalRuleReversalMachine / WaveCortex / TuftSheet line
 carried a belief between events.
 
-## New experiment: V4 role-bound working space (ready to run)
-
-**Question:** Can the small neural state that carried *one* derived answer
-also carry **two distinct answers with recoverable roles**?
-
-V3 showed that a bag of concepts is not enough to identify what each
-concept *means* in a relationship. The v4 experiment implements a **single
-non-text memory vector** with two role addresses, *first* and *second*.
-It stores two separately derived J-space residues, then asks Qwen for one
-of the two after a fresh, unrelated context.
-
-- **Bound**: recover the requested role from one packed vector.
-- **Unbound**: simply add both bags, losing which is which.
-- **Wrong role**: deliberately retrieve the other thought.
-- **Single state, no state, cue, oracle, in-context**: honest controls.
-- **Fork**: an isolated, externally supplied hypothetical update with an
-  explicitly marked *imagined* source (unit-tested plumbing, **not**
-  learned imagination).
-
-These role transformations are engineered by us (orthogonal
-signed-permutation/Hadamard maps). They are *not* Qwen learning relations,
-and no real Qwen v4 outcome has been measured yet. All v1-v3 results
-below are preserved; the v4 gate thresholds are fixed in
-[ROLE_PROTOCOL.md](ROLE_PROTOCOL.md).
-
-**Run on the RTX 3060 (after a quick smoke check):**
-
-    python3.13 -m unittest discover -s tests -p "test_role_memory.py" -v
-    python3.13 role.py --model Qwen/Qwen2.5-1.5B-Instruct --max-pairs 2
-    python3.13 role.py --model Qwen/Qwen2.5-1.5B-Instruct
-
-The first run extends and caches the lens; full results go to
-`results/Qwen_Qwen2.5-1.5B-Instruct/roles_v4/`.
-A smoke run is **not** confirmation.
-
-The larger program is mapped in
-[INNER_WORLD_ROADMAP.md](INNER_WORLD_ROADMAP.md): learned relational roles,
-one world-state shared by perception and simulation, source attribution,
-counterfactual action, and eventually self-directed internal inquiry.
-
----
-
 ## Result: confirmed on fresh items (v2, 5 of 5 gates)
 
 The first pre-registered run (v1) failed every gate, mostly through my
@@ -163,6 +121,85 @@ says which is the thought. A bag of concepts has no relations. Picking
 the thought needs something that binds a concept to its role, the
 multiplicative (c₃) term the earlier machines kept running into, and not
 another way of ranking the bag.
+
+## V5: write once, retrieve later (Astra; negative)
+
+[DELAYED_RECALL.md](DELAYED_RECALL.md), [full rows](results/Qwen_Qwen2.5-1.5B-Instruct/delayed_v5/full.json).
+Two items are written once, each on the colon after its label (`Alpha:`,
+`Beta:`, layer 22). The model then reads a paragraph, the state is cached,
+and the writer is off before either question exists. Assignments and label
+order are crossed, so recency or item strength can't score. 29 pairs, 232
+questions per arm:
+
+| before the question | requested beats partner | requested ranked first |
+|---|---|---|
+| both words printed beside their labels | 214/232 | 176/232 |
+| two derived thought writes | 117/232 | 0/232 |
+| two answer-word writes (oracle) | 116/232 | 0/232 |
+| nothing written | 116/232 | 0/232 |
+
+The task is easy for Qwen when the words are in the text. Single-token
+writes at layer 22 are not retrieved. Even the clean answer word fails,
+so the loss is in the write-and-retrieve path, not in the derived thought.
+The writes do reach later computation: target-vs-partner scores move by
+about 0.025 logits per query on average. But the first word was the same
+as with no write in all 232 queries. V2 still stands: there the state was
+released *during* the answer, not stored for later retrieval.
+
+**Next (one step at a time, one item, the answer word only):** reproduce
+V2's write during the question; reduce it to one write at the answer
+prefix; move that write to just before the question; then put the
+paragraph between write and question. The first step that breaks shows
+where retrieval fails. Only once a single item is recoverable does a
+second item test binding.
+
+## V4: role-bound working space (built, not run)
+
+*Status note (Nov 18):* not run on Qwen, and as built it couldn't test
+binding. The script picks the role key for the asked question and unbinds
+the bag **before** injecting, so Qwen only ever receives one bag. The
+binder also barely changes the bag (in a simulation at this vocabulary
+size, the decoded top 8 overlap the original by 0.97). Kept as an
+engineering baseline. V5 below is the version where Qwen has to do the
+selection itself.
+
+**Question:** Can the small neural state that carried *one* derived answer
+also carry **two distinct answers with recoverable roles**?
+
+V3 showed that a bag of concepts is not enough to identify what each
+concept *means* in a relationship. The v4 experiment implements a **single
+non-text memory vector** with two role addresses, *first* and *second*.
+It stores two separately derived J-space residues, then asks Qwen for one
+of the two after a fresh, unrelated context.
+
+- **Bound**: recover the requested role from one packed vector.
+- **Unbound**: simply add both bags, losing which is which.
+- **Wrong role**: deliberately retrieve the other thought.
+- **Single state, no state, cue, oracle, in-context**: honest controls.
+- **Fork**: an isolated, externally supplied hypothetical update with an
+  explicitly marked *imagined* source (unit-tested plumbing, **not**
+  learned imagination).
+
+These role transformations are engineered by us (orthogonal
+signed-permutation/Hadamard maps). They are *not* Qwen learning relations,
+and no real Qwen v4 outcome has been measured yet. All v1-v3 results
+below are preserved; the v4 gate thresholds are fixed in
+[ROLE_PROTOCOL.md](ROLE_PROTOCOL.md).
+
+**Run on the RTX 3060 (after a quick smoke check):**
+
+    python3.13 -m unittest discover -s tests -p "test_role_memory.py" -v
+    python3.13 role.py --model Qwen/Qwen2.5-1.5B-Instruct --max-pairs 2
+    python3.13 role.py --model Qwen/Qwen2.5-1.5B-Instruct
+
+The first run extends and caches the lens; full results go to
+`results/Qwen_Qwen2.5-1.5B-Instruct/roles_v4/`.
+A smoke run is **not** confirmation.
+
+The larger program is mapped in
+[INNER_WORLD_ROADMAP.md](INNER_WORLD_ROADMAP.md): learned relational roles,
+one world-state shared by perception and simulation, source attribution,
+counterfactual action, and eventually self-directed internal inquiry.
 
 ## The experiment (v2, as confirmed)
 
