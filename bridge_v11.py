@@ -28,15 +28,33 @@ K_PRIMARY, K_SECONDARY = 1, 8
 SEED = 20261118
 
 
+# The act of holding, not its content (v1: these led 44-53 of 58 holds). Removed so the top
+# concept is the thought, not "picture".
+MODE_WORDS = {"thought", "thoughts", "imagine", "mind", "think", "brain", "picture", "pictures",
+              "photographs", "memory"}
+
+
 def late_bag(lab, clue, decoy, l_read):
     z = lab.hold(clue)[l_read]
-    blocked = sorted(lab.base_block | {lab.lens.index[decoy]})
+    mode = {i for i, w in enumerate(lab.lens.words) if w.strip().casefold() in MODE_WORDS}
+    blocked = sorted(lab.base_block | mode | {lab.lens.index[decoy]})
     return bag(z, blocked)                         # idx, values, sparse
 
 
-def bridged(lab, idx, values):
-    """Early-band directions for concepts chosen (and weighted) by the late read."""
-    return {l: lab.lens.write(l, idx, values) for l in lab.band}
+def bridged(lab, idx, values, decoy):
+    """Early-band directions for concepts chosen (and weighted) by the late read.
+
+    The swap exchanges coordinates, so it is only fair between directions of equal length
+    (the paper swaps equal-magnitude projections). Each direction is rescaled to the length
+    of the decoy's own lens vector at that layer. The first V11 run omitted this: the bag
+    direction was ~100x shorter than the word direction, so the swap erased the decoy and
+    installed almost nothing (every swapped answer fell to about 0)."""
+    out = {}
+    for l in lab.band:
+        d = lab.lens.write(l, idx, values).float()
+        a = lab.lens.J[l][lab.lens.index[decoy]].float()
+        out[l] = d * (a.norm() / d.norm().clamp_min(1e-12))
+    return out
 
 
 def run(lm, lens, band=BAND, l_read=L_READ, alpha=ALPHA, train=TRAIN, pairs=PAIRS, log=print):
@@ -61,15 +79,15 @@ def run(lm, lens, band=BAND, l_read=L_READ, alpha=ALPHA, train=TRAIN, pairs=PAIR
         idx, values, sparse = late_bag(lab, c["clue"], c["decoy"], l_read)
         c["late_bag"] = [lens.words[i] for i in idx.tolist()]
         c["source_in_bag"] = c["source"] in c["late_bag"]
-        c["clean"], c["thought"] = lab.evidence(c["decoy"], bridged(lab, idx[:K_PRIMARY], values[:K_PRIMARY]), alpha)
-        _, c["thought_k8"] = lab.evidence(c["decoy"], bridged(lab, idx[:K_SECONDARY], values[:K_SECONDARY]), alpha)
+        c["clean"], c["thought"] = lab.evidence(c["decoy"], bridged(lab, idx[:K_PRIMARY], values[:K_PRIMARY], c["decoy"]), alpha)
+        _, c["thought_k8"] = lab.evidence(c["decoy"], bridged(lab, idx[:K_SECONDARY], values[:K_SECONDARY], c["decoy"]), alpha)
         if c["kind"] == "cross":
             _, c["word"] = lab.evidence(c["decoy"], lab.word_dirs(c["source"]), alpha)
             if eligible is None:
                 eligible = [i for i in range(len(lens.words)) if i not in lab.base_block]
             ridx = torch.tensor(rng.sample([i for i in eligible if i != lens.index[c["decoy"]]],
                                            K_PRIMARY), device=idx.device)
-            _, c["random"] = lab.evidence(c["decoy"], bridged(lab, ridx, values[:K_PRIMARY]), alpha)
+            _, c["random"] = lab.evidence(c["decoy"], bridged(lab, ridx, values[:K_PRIMARY], c["decoy"]), alpha)
             c["reader_correct"] = float((classifier(feats, sparse) > 0) == c["living"])
         rows.append(c)
         log(f"{len(rows)}/{4 * len(te)} {c['kind']} {c['source']} -> {c['decoy']}: "
@@ -108,7 +126,7 @@ def main():
         cached.parent.mkdir(exist_ok=True)
         lens.save(cached)
     rep = run(lm, lens, pairs=PAIRS[:3] if args.quick else PAIRS)
-    out = root / "bridge_v11"
+    out = root / "bridge_v11b"
     out.mkdir(exist_ok=True)
     dest = out / ("quick.json" if args.quick else "full.json")
     tmp = dest.with_suffix(f".{os.getpid()}.tmp")

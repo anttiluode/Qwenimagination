@@ -4,6 +4,30 @@
 
 The project uses the J-space lens from Gurnee, Sofroniew, Lindsey et al., *Verbalizable Representations Form a Global Workspace in Language Models* (2026). The WaveCortex and TuftSheet projects motivated the longer-term question of whether a model can use a silently supplied state later. The experiments below distinguish external storage, direct readout, and retrieval by Qwen.
 
+## The big mistake: from V2 to V9 we forgot the paper
+
+This project is built on Gurnee et al. (2026), and for most of its versions it did not follow the paper's methods. Claude read the paper's discussion sections (9.1, 9.3, 9.4) before v1 and designed from those. The methods sections that say *where* and *how* to intervene (§3.3, §3.4, §4.1, §4.3) were not consulted until after V8. Sol (V4) and Astra (V5–V7) never had the paper. Each version built on the one before, so the gap carried through eight experiments.
+
+What the paper does, and what we did instead:
+
+| | The paper | V2–V8 |
+|---|---|---|
+| Layers | the workspace band, from about a third of the way in to shortly before the output. The last few layers are "motor": they drive the next token and aren't available for further thinking (§4.1) | read at layer 26 of 28 and write at 22, both in the motor layers. Layer 26 was chosen by the v2 diagnostic because it scored best, not checked against the paper |
+| Intervention | a swap: remove one concept, put another in its place with equal magnitude, clamped at every position across the whole band (§3.3, §3.4) | an addition at one layer, at one or a few positions |
+| Starting state | the concept being replaced is already present; how strongly it is present predicts success (§3.4) | an empty slot |
+| Moving across tokens | broadcast heads in the first half of the band (§4.3.2) | single writes at layer 22, after them |
+
+What it cost:
+
+- **V5–V8 asked real questions with the wrong tool.** Their negatives are mostly what the paper predicts for late-layer additions: content there is a speech lever. V2's positive result is the paper's injected-thought experiment (§3.1), which is why it worked.
+- **A measurement we already had went unused.** The v2 diagnostic counted, layer by layer, where the silent thought becomes readable: 4–8 of 38 items at layers 1–16, rising from layer 17, 37 of 38 at layers 26–27. V10 read the thought at layers 4–12 without looking at this table, and carried nothing.
+- **Two runs were steered by noise.** V3's rule and V10's swap strength were picked on a handful of training items by margins of a few hundredths.
+- **The swap was implemented without the paper's "equal magnitude".** V10's and the first V11 run's thought directions were about 100× shorter than a word's direction. The coordinate exchange then mostly erased the decoy, so every swapped answer fell to about zero (below).
+
+When the paper's method was finally used (V9), it worked on the first run: swapping a word across layers 4–12 changed how Qwen answered a different question about it.
+
+Lessons kept from this: read the methods before designing; reproduce the paper's validated intervention before inventing a new one; check what the repo has already measured; fix choices in advance instead of picking them on a few items; and test that a new intervention gives the same answer as the old one when both should be identical.
+
 ## Result: confirmed on fresh items (v2, 5 of 5 gates)
 
 The first pre-registered run (v1) failed every gate, mostly through my
@@ -232,13 +256,19 @@ Thought − same-category: +0.18 (CI −0.03..+0.35). Thought − random: +0.08 
 
 [Protocol](THOUGHT_V10.md) · [Full rows](results/Qwen_Qwen2.5-1.5B-Instruct/thought_v10/full.json).
 
-## V11: read the thought in the mouth, install it in the room (ready to run)
+## V11: read the thought in the mouth, install it in the room (first run invalid; V11b ready)
 
 The thought is readable late (layer 26); a concept can steer a later question only early (layers 4–12). V11 takes the concepts and weights from the layer-26 read and swaps them in by their own layer-4–12 directions. Nothing is selected on training pairs: α = 1 and the top concept (K = 1) are fixed in advance; the whole bag (K = 8) is reported alongside.
 
+**The read held up.** The layer-26 bag contained the item's own word for 36 of 40 items, and the external reader got the category right for 37 of 40 (0.925).
+
+**The swap had a scale bug, so the first run tests nothing about the thought.** Every swapped answer (thought, bag, and random directions alike) fell to about 0 (between −1.5 and +1.6), whatever was swapped in. The plainest case: for *chair → wolf* the top concept was *chair* itself, so the thought swap and the word swap installed the same concept. The word gave −9.4, the thought +0.4. The swap exchanges coordinates, and the thought direction (the lens's minimum-norm write of the bag) was about 100× shorter than a word's lens vector. Exchanging coordinates between unequal lengths mostly erased the decoy and installed almost nothing. V10's thought and random arms had the same flaw. The word arm reproduced V9 exactly (9/15 flips on living slots, 0/20 on manufactured).
+
+**V11b** rescales each thought direction to the length of the decoy's lens vector at that layer (the paper's "equal magnitude"). A test now checks that a one-concept thought swap gives the same answer as the word swap for that concept. It also removes the "I'm holding a thought" words (*picture, imagine, photographs…*) from the bag; *picture* was the top concept for 8 of 40 items. Protocol, gates and predictions are otherwise unchanged.
+
     python3.13 bridge_v11.py
 
-[Protocol and predictions](BRIDGE_V11.md).
+[Protocol and predictions](BRIDGE_V11.md) · [First run's rows](results/Qwen_Qwen2.5-1.5B-Instruct/bridge_v11/full.json).
 
 ## V4: role-bound working space (built, not run)
 

@@ -38,3 +38,7 @@ Also reported: how often the item's own word is in the late bag, and flips split
     python3.13 bridge_v11.py
 
 Reuses V9's cached lens. Output: `results/Qwen_Qwen2.5-1.5B-Instruct/bridge_v11/full.json`.
+
+## Amendment after the first run (V11b)
+
+The first run's swapped answers all fell to about 0, thought and random alike, because the thought direction was about 100× shorter than the word direction and the swap exchanges coordinates. V11b rescales each thought direction to the length of the decoy's lens vector at that layer, and removes the mode words (*thought, thoughts, imagine, mind, think, brain, picture, pictures, photographs, memory*) from the bag. Nothing else changes. Output goes to `bridge_v11b/full.json`.
