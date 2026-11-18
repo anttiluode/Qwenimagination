@@ -1,23 +1,8 @@
 # Qwenimagination
 
-**Can a frozen language model hold a thought it never wrote down, carry it
-through a conversation that doesn't contain it, and say it at the end?**
+**A frozen Qwen model produces a short list of concepts that carries information about the answer to a clue.** An external script keeps that list across contexts. On two fixed-choice datasets, reading the list directly recovered more answers than writing it back into Qwen. A clean answer-word write was effective at the final answer position. Writing the same direction before the question produced a small score change and no change to any top choice in the 60-item timing test.
 
-Anthropic's J-space paper (Gurnee, Sofroniew, … Lindsey, *Verbalizable
-Representations Form a Global Workspace in Language Models*, arXiv
-2607.15495, 2026) found that a language model's "workspace" is a small set
-of directions it is poised to put into words. The model can hold a concept
-there on request, reason through it, and report it. The same paper names
-the limit (§9.3): this workspace is rebuilt at every token. The only way a
-transformer can hold a thought longer than one forward pass is to write it
-out as tokens and read it back, *"punctuated at regularly spaced intervals
-by a significant bandwidth constraint."* A brain holds a thought in
-recurrent activity, without speaking it.
-
-This repo tests the smallest version of the missing piece: a **J-space state
-that lives outside the token stream**, carried by a small loop, the way the
-WaveComputer / ApicalRuleReversalMachine / WaveCortex / TuftSheet line
-carried a belief between events.
+The project uses the J-space lens from Gurnee, Sofroniew, Lindsey et al., *Verbalizable Representations Form a Global Workspace in Language Models* (2026). The WaveCortex and TuftSheet projects motivated the longer-term question of whether a model can use a silently supplied state later. The experiments below distinguish external storage, direct readout, and retrieval by Qwen.
 
 ## Result: confirmed on fresh items (v2, 5 of 5 gates)
 
@@ -47,15 +32,7 @@ designing. Qwen2.5-1.5B-Instruct, read layer 26, write layer 22
 | C4 own vs another item's state | +0.30 (+0.18..+0.42) | pass |
 | C5 carried vs in-context | +0.12 (−0.03..+0.27) | pass by its rule, but the CI includes 0 |
 
-**What this shows.** A thought the model *derived* and never wrote ("the
-capital city of …" → the city) can be lifted out of its workspace, kept
-outside the tokens through an unrelated paragraph, and released when it's
-asked for. The paragraph is untouched. The model then names it about a
-third of the time, against 2% without the state and 0% with the bare cue.
-The thought is the **residue of the workspace against its usual holding
-state**: the J-space concepts that rose above what holding a thought
-normally looks like. The loudest concepts are the act of holding itself
-(*thought, imagine, picture, mind*), and they carry almost nothing.
+**What V2 establishes.** The script reads eight concept directions that rose above Qwen's usual holding state and stores their weights externally. Injecting them during the later question raised forced-choice accuracy from 1/60 to 18/60. The hold text itself was absent from the recall context. The paragraph received no intervention by design.
 
 **The state carries this item's content, not a general "remember" push.**
 Another item's state never produced this item's answer, and in 20 of 60
@@ -65,10 +42,8 @@ cases it made the model name *the other item's* answer.
 18, top three in 31. The model says a word from the bag, but often a
 neighbour or the cue: *cheese* comes back as *cheese*, but *pen* comes back
 as *ink*, *lungs* as *chest*, *December* as *January*. Writing the answer
-alone gets 0.82, so the gap between 0.30 and 0.82 is choosing the thought
-from its neighbourhood. That's the bag-of-concepts limit of the J-space
-paper, now measured. Holding fewer concepts (K = 1: 0.32) didn't fix it;
-I predicted it would.
+alone gets 49/60. Selection and readback can both contribute to this gap.
+Using one held concept (K = 1) gave 0.32.
 
 **Not earned:** the closed loop (0.05). What works is a still residue
 released at the right moment, not a loop that keeps it alive.
@@ -115,12 +90,19 @@ seen items, and the winner was tested on **50 fresh items**:
 - **The bag problem is still there.** Under A the model said a word from
   the held bag in 31 of 50 cases, but the right one in 11.
 
-**What this suggests:** a bag can't say which of its members is the answer.
-*Paris* and *France* are both in it, and only the relation "capital of"
-says which is the thought. A bag of concepts has no relations. Picking
-the thought needs something that binds a concept to its role, the
-multiplicative (c₃) term the earlier machines kept running into, and not
-another way of ranking the bag.
+## Direct reader comparison (retrospective)
+
+The reader takes the first word in a saved ranked bag that belongs to the original forced-choice vocabulary (all eligible answer **and cue** words for that dataset). It never sees the clue or the correct label. An empty intersection counts as wrong. The evaluation uses the same items as the model readback. The V3 comparison uses the V2-style A_usual arm.
+
+| Readout | V2 (60 items) | V3 (50 fresh items) |
+|---|---:|---:|
+| First word in the bag, unrestricted | 18/60 | 10/50 |
+| Qwen after injecting the bag during the question | 18/60 | 11/50 |
+| First eligible word in the bag | **29/60** | **25/50** |
+
+For the wool clue, the list began *rabbit, sheep*. Sheep was the first eligible choice. After injection Qwen ranked *brown* first. The simple reader benefits from the known candidate list, just as Qwen's scorer does. This is retrospective evidence for item information in the extracted bag and a limitation of the readback method. It leaves open the role of binding and performance on open-ended questions.
+
+[Recompute the comparison](compare_readers.py) · [V2 rows](results/Qwen_Qwen2.5-1.5B-Instruct/confirm_v2/rows.jsonl) · [V3 rows](results/Qwen_Qwen2.5-1.5B-Instruct/pick_v3/rows.jsonl).
 
 ## V5: write once, retrieve later (Astra; negative)
 
@@ -146,12 +128,30 @@ about 0.025 logits per query on average. But the first word was the same
 as with no write in all 232 queries. V2 still stands: there the state was
 released *during* the answer, not stored for later retrieval.
 
-**Next (one step at a time, one item, the answer word only):** reproduce
-V2's write during the question; reduce it to one write at the answer
-prefix; move that write to just before the question; then put the
-paragraph between write and question. The first step that breaks shows
-where retrieval fails. Only once a single item is recoverable does a
-second item test binding.
+## V6: timing a clean answer-word write
+
+The replay reproduced **all 60 original V2 oracle choices**, including the 11 errors. The subsequent conditions used an otherwise identical marked prompt. These were clean answer-word directions supplied by the experimenter. V2's derived-bag result is a separate measurement.
+
+| Layer-22 write schedule | Exact choices | Mean target log-probability gain over marked no-write |
+|---|---:|---:|
+| Original V2 oracle replay | 49/60 | — (original prompt) |
+| Repeated, question through final answer-prefix token | 48/60 | +7.819 |
+| Final answer-prefix token only | 46/60 | +7.650 |
+| Marker immediately before question | 2/60 | +0.062 |
+| Marker before paragraph | 2/60 | +0.026 |
+| No write | 2/60 | 0 |
+
+Moving the single write 25 tokens upstream cost 44 correct choices (paired difference −73.3 percentage points, 95% bootstrap interval −85.0 to −61.7). For both upstream positions the target score improved on all 60 items, yet every top choice matched the no-write condition. Position, surrounding tokens and distance change together. The result applies to this layer, direction, and task.
+
+[Timing protocol](TIMING.md) · [Full rows](results/Qwen_Qwen2.5-1.5B-Instruct/timing_v6/full.json).
+
+## V7: can a later question use the carried content?
+
+Write once before the question, then ask for the item's category. The meanings of answer letters A and B reverse between questions asked from copies of the same stored state. The derived bag, swapped bag, empty slot, printed word, native-token patch, and an external classifier are compared on the same 40 evaluation items. The classifier is trained on 20 other items. Trained-model results are pending.
+
+    python3.13 category_transfer.py
+
+[Protocol, controls, and interpretation](CATEGORY.md).
 
 ## V4: role-bound working space (built, not run)
 
@@ -160,14 +160,13 @@ binding. The script picks the role key for the asked question and unbinds
 the bag **before** injecting, so Qwen only ever receives one bag. The
 binder also barely changes the bag (in a simulation at this vocabulary
 size, the decoded top 8 overlap the original by 0.97). Kept as an
-engineering baseline. V5 below is the version where Qwen has to do the
+engineering baseline. V5 above is the version where Qwen has to do the
 selection itself.
 
 **Question:** Can the small neural state that carried *one* derived answer
 also carry **two distinct answers with recoverable roles**?
 
-V3 showed that a bag of concepts is not enough to identify what each
-concept *means* in a relationship. The v4 experiment implements a **single
+V3 motivated an exploratory slot-binding design. The v4 experiment implements a **single
 non-text memory vector** with two role addresses, *first* and *second*.
 It stores two separately derived J-space residues, then asks Qwen for one
 of the two after a fresh, unrelated context.
@@ -215,8 +214,8 @@ counterfactual action, and eventually self-directed internal inquiry.
            = Paris, France, London, ...            question onward
 ```
 
-- **The answer is derived, never written.** "Paris" is not in either
-  context. If the model says it, the thought came through the state.
+- **The answer is omitted from the hold text.** "Paris" is not in either
+  context. The no-write and shuffled controls measure how much the item-specific state helps.
 - **The hold is not in the recall context,** so attention can't look it up.
 - **Strict scoring.** Forced choice over every answer *and every cue word*.
   Saying "France" for the capital of France counts as wrong.
@@ -242,7 +241,7 @@ Because pushing harder always helps recall but also disturbs the model,
 every route is compared **at matched damage**: the KL between the model's
 next-token distributions with and without the injection.
 
-## History: the first pre-registered run (v1) failed 0 of 5 gates
+## History: the first pre-registered run (v1) passed 0 of 5 gates
 
 Qwen2.5-1.5B-Instruct, 38 test items, read layer 22, write layer 18
 ([summary](results/Qwen_Qwen2.5-1.5B-Instruct/summary.json)). Every gate failed:
@@ -359,8 +358,7 @@ result in its own right.
 
 ## Honest edges
 
-- **The thought is supplied as an instruction.** This is held imagination,
-  not spontaneous imagination.
+- **The instruction asks the model to think of a specified item.** The measurement is a concept read during the fixed reply.
 - **One-token concepts only,** and a hand-written concept list of about 300
   words, not the whole vocabulary.
 - **The state is a fixed set of concepts.** The loop sets how hard to push,
