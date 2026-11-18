@@ -161,13 +161,25 @@ Write once before the question, then ask for the item's category. The meanings o
 
 [Protocol](CATEGORY.md) · [Full rows](results/Qwen_Qwen2.5-1.5B-Instruct/category_v7/full.json).
 
-## V8: the same question, with the format checked first (ready to run)
+## V8: the same question, with the format checked first (negative)
 
-V8 picks the question format on the 20 training items using the printed word, and stops unless it reaches 0.85. Only then does it choose the write (layer, strength, answer position or whole question) on the same training items, and test the frozen choice on V7's 40 held-out items. Every answer is calibrated against the neutral prompt with no write, so a fixed lean can't score. Controls: no write, the same weights on random directions, the item word's own direction, and the 0.91 reader.
+V8 picks the question format on the 20 training items using the printed word, and stops unless it reaches 0.85. Only then does it choose the write (layer, strength, answer position or whole question) on the same training items, and test the frozen choice on V7's 40 held-out items. Every answer is calibrated against the neutral prompt with no write, so a fixed lean can't score.
 
-    python3.13 category_v8.py
+**The format check passed, so this is a real result.** Yes/no ("a living thing?" / "made by people?") reached 0.95 with the printed word on training items and 1.00 on the test items. No write passed: 23 of 24 write settings scored 0.50 on training, and the chosen one (layer 14, strength 1, over the question) scored 0.50 on test.
 
-[Protocol and predictions](CATEGORY_V8.md).
+| Arm (40 held-out items) | Accuracy | Living minus manufactured, within pair |
+|---|---|---|
+| Printed word | **1.00** | +11.2 (20/20 pairs right) |
+| Reader on the bag | **0.91** | – |
+| Derived thought written in | 0.50 | +0.15 (8/20, CI −0.39..+0.76) |
+| Same weights, random directions | 0.50 | −0.16 (9/20) |
+| The item word's own direction | 0.61 | −0.38 (4/8) |
+
+Every write pushed every item toward "living" by 1–7 units, whatever it carried: a generic disturbance, not content. Even writing the clean direction for *chair* moved Qwen the same way as *wolf*.
+
+**What this means.** J-lens directions are "about to say this word" directions. Written at the answer they make Qwen say the word (V2, V6), and that is all they do: they don't make Qwen *understand* the word well enough to answer a different question about it. The read holds (a classifier gets the category from the bag 91% of the time); the lens write is a speech lever, not a thought.
+
+[Protocol and predictions](CATEGORY_V8.md) · [Full rows](results/Qwen_Qwen2.5-1.5B-Instruct/category_v8/full.json).
 
 ## V4: role-bound working space (built, not run)
 
