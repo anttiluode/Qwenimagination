@@ -213,6 +213,14 @@ Manufactured items start far more certain (about −10 against +1..+6 for living
 
 [Protocol](SWAP_V9.md) · [Full rows](results/Qwen_Qwen2.5-1.5B-Instruct/swap_v9/full.json).
 
+## V10: Qwen's own silent thought, swapped in (ready to run)
+
+V9's method with Qwen's thought in place of the word. Qwen silently thinks of something from a clue; its lens state is read **inside layers 4–12** (not 26), carried to a fresh conversation, and swapped into a slot holding a word of the other category ("Item: chair"). Then: "is it a living thing?". If the answer follows the thought, Qwen used its unspoken thought for a second inference. Controls: the true word swapped in (V9), the same weights on random directions, the thought swapped into a same-category slot, and an external reader on the same bag.
+
+    python3.13 thought_swap_v10.py
+
+[Protocol and predictions](THOUGHT_V10.md).
+
 ## V4: role-bound working space (built, not run)
 
 *Status note (Nov 18):* not run on Qwen, and as built it couldn't test
