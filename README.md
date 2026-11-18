@@ -256,7 +256,7 @@ Thought − same-category: +0.18 (CI −0.03..+0.35). Thought − random: +0.08 
 
 [Protocol](THOUGHT_V10.md) · [Full rows](results/Qwen_Qwen2.5-1.5B-Instruct/thought_v10/full.json).
 
-## V11: read the thought in the mouth, install it in the room (first run invalid; V11b ready)
+## V11: read the thought in the mouth, install it in the room (first run invalid; V11b: G1 passed, G2 failed)
 
 The thought is readable late (layer 26); a concept can steer a later question only early (layers 4–12). V11 takes the concepts and weights from the layer-26 read and swaps them in by their own layer-4–12 directions. Nothing is selected on training pairs: α = 1 and the top concept (K = 1) are fixed in advance; the whole bag (K = 8) is reported alongside.
 
@@ -264,11 +264,26 @@ The thought is readable late (layer 26); a concept can steer a later question on
 
 **The swap had a scale bug, so the first run tests nothing about the thought.** Every swapped answer (thought, bag, and random directions alike) fell to about 0 (between −1.5 and +1.6), whatever was swapped in. The plainest case: for *chair → wolf* the top concept was *chair* itself, so the thought swap and the word swap installed the same concept. The word gave −9.4, the thought +0.4. The swap exchanges coordinates, and the thought direction (the lens's minimum-norm write of the bag) was about 100× shorter than a word's lens vector. Exchanging coordinates between unequal lengths mostly erased the decoy and installed almost nothing. V10's thought and random arms had the same flaw. The word arm reproduced V9 exactly (9/15 flips on living slots, 0/20 on manufactured).
 
-**V11b** rescales each thought direction to the length of the decoy's lens vector at that layer (the paper's "equal magnitude"). A test now checks that a one-concept thought swap gives the same answer as the word swap for that concept. It also removes the "I'm holding a thought" words (*picture, imagine, photographs…*) from the bag; *picture* was the top concept for 8 of 40 items. Protocol, gates and predictions are otherwise unchanged.
+**V11b** rescales each thought direction to the length of the decoy's lens vector at that layer (the paper's "equal magnitude"), and removes the "I'm holding a thought" words (*picture, imagine, photographs…*) from the bag. A test checks that a one-concept thought swap gives the same answer as the word swap for that concept; on Qwen, *chair → wolf* now gives −9.5 (thought) against −9.4 (word).
 
-    python3.13 bridge_v11.py
+**V11b result (20 held-out pairs).** Gate G1 passed: thought into a slot of the other category flips 0.40, into a slot of its own category 0.15, difference +0.25 (CI +0.15..+0.35). Gate G2 failed: random directions also flipped 0.35 (thought − random +0.05, CI −0.08..+0.18). The true word didn't beat random either.
 
-[Protocol and predictions](BRIDGE_V11.md) · [First run's rows](results/Qwen_Qwen2.5-1.5B-Instruct/bridge_v11/full.json).
+**Why random flips as often.** Every flip came from slots holding a living word (thought 11/15, word 9/15, random 11/15); slots holding a manufactured word never flipped (0/20 for every arm). Taking *wolf* out of its slot is enough to make Qwen stop saying "living", whatever goes in its place. In this setup "manufactured" behaves like what's left when the concept is gone, so cross flips can't show what was installed.
+
+**What does show it (post hoc, same rows).** Hold the slot fixed and compare what gets swapped in. In the 20 living slots, the answer stayed "living" in:
+
+| Swapped into a living slot | Answer still "living" |
+|---|---|
+| Qwen's thought of another living thing | **14/20** |
+| Random concept directions | 6/20 |
+| Qwen's thought of a manufactured thing | 4/20 |
+| The manufactured item's own word | 6/20 |
+
+Same-category thought minus random, evidence for "living": +2.9 (CI +1.8..+4.0); minus the other-category thought: +3.4 (CI +2.3..+4.5). In manufactured slots a living thought pushed toward "living" more than a manufactured thought did (+1.3, CI +0.7..+1.9) without crossing. So the content of Qwen's carried thought, read at layer 26 and installed at layers 4–12, decides whether Qwen still calls the slot alive. This comparison was not a pre-registered gate; it needs confirming on fresh items.
+
+The layer-26 bag held the item's own word for 37/40 items; the reader got the category for 36/40 (0.90).
+
+[Protocol and predictions](BRIDGE_V11.md) · [V11b rows](results/Qwen_Qwen2.5-1.5B-Instruct/bridge_v11b/full.json) · [First run's rows](results/Qwen_Qwen2.5-1.5B-Instruct/bridge_v11/full.json).
 
 ## V4: role-bound working space (built, not run)
 
