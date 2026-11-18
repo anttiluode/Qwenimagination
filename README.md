@@ -287,11 +287,22 @@ The layer-26 bag held the item's own word for 37/40 items; the reader got the ca
 
 ## Rumination: the first thought loop outside the tokens (exploratory)
 
-The two pieces that held up, joined into a loop. A thought read at layer 26 is installed silently into a carrier prompt (swap across layers 4–12), Qwen's next thought is read at layer 26, and that one is installed in turn. No token carries the thought. With no fatigue it should get stuck (rumination); with fatigue on recent thoughts it should wander. The holding-mode words are tracked as an "imagined" tag. A check compares each silently installed concept's associations with those of the same word printed in the prompt.
+The two pieces that held up, joined into a loop. A thought read at layer 26 is installed silently into a carrier prompt ("Item: stone. Silently think of what the item above brings to mind."; *stone* is swapped for the thought across layers 4–12), Qwen's next thought is read at layer 26, and that one is installed in turn. No token carries the thought. Fatigue on recently used thoughts switches between staying (0) and moving on (1). [What it does](RUMINATE.md).
 
-    python3.13 ruminate.py
+**The check held.** For 40 words, the associations Qwen holds after a word is installed silently overlap those it holds when the word is printed in the prompt: **0.41** of the top 8, against **0.07** for a different installed word; installed beats other in **34/40** (5 ties). Installs carried worst for *wolf, spoon, oak, rose* (0 overlap) and best for *drum, shark, lamp, pencil* (0.75).
 
-[What it does](RUMINATE.md).
+**Fatigue 0** stays on its first thought forever (*rabbit → rabbit → …*): an installed concept evokes itself most strongly, so the loop sits at a fixed point. That is rumination in its simplest form.
+
+**Fatigue 1** wanders, and stays meaningful:
+
+    wool clue:  rabbit → rabbits → mice → dog → puppy → cat → dog → teeth → shark → shark
+    France:     Paris → France → Italy → Italian → Spain → Madrid → Brazil → Brazil → Spain → France
+    web clue:   spider → insect → flies → bird → bees → camera → film → film → camera → ticket
+    ink clue:   ink → paper → letter → pen → pencil → mouse → mice → dog → puppy → cat
+
+*pencil → mouse → mice* crosses from desk things to animals through a word with two meanings. *bees* broke the chain: it evoked *root, station, case, camera, hope*, and *bee* was one of the installs that carried worst in the check.
+
+**What it isn't.** The wool clue's seed was *rabbit* (with *sheep* fourth), so the loop starts from Qwen's thought, not the intended answer. The chain's movement comes from our selection rule (strongest concept minus fatigue); Qwen supplies the associations. The check shows a silent install is roughly as good as printing the word, not better. The "imagined" tag (mean reading of *picture, imagine, photographs…*) is small and follows content (highest on *camera*, +0.28), so it does not yet work as a tag.
 
 ## V4: role-bound working space (built, not run)
 
