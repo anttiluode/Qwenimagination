@@ -193,13 +193,25 @@ Our read was at layer 26 of 28 and our writes were single additions, mostly at l
 
 None of V2–V8 tested the paper's method on Qwen. V9 does.
 
-## V9: the paper's swap on Qwen 1.5B (ready to run)
+## V9: the paper's swap on Qwen 1.5B (gate passed)
 
-Find Qwen's workspace band from the paper's signatures. Then, on "Item: wolf" + "is it a living thing?", swap *wolf* ↔ *chair* (other category) or *wolf* ↔ *lion* (same category), clamped across the band. If cross swaps flip the answer and same-category swaps don't, a 1.5B Qwen has a workspace that a swapped-in concept can steer. Whether small models do is one of the paper's open questions.
+Swap two lens coordinates, clamped at every position across a band of layers, on a concept already in the prompt: "Item: wolf", then "is it a living thing?" / "made by people?". Cross swap: *wolf* ↔ *chair*. Control: *wolf* ↔ *lion*, same category. Band and strength chosen on 9 training pairs; tested on V8's 20 held-out pairs.
 
-    python3.13 swap_v9.py
+**Result: swapping the concept in layers 4–12 changes how Qwen answers a different question about it.** Gate S1 passed: cross flips 0.35, same-category flips 0.10, difference +0.25 (95% CI +0.15..+0.35).
 
-[Protocol and predictions](SWAP_V9.md).
+| On held-out items | Living → manufactured partner | Manufactured → living partner |
+|---|---|---|
+| Answer flipped (of items answered right before the swap) | **9/15** (wolf → chair: +2.6 → −9.4) | 0/20 |
+| Moved toward the partner's category | 18/20 | 18/20 |
+| Same-category control, moved the same way | 11/20 (mean −0.2) | 14/20 (mean +0.5) |
+
+Manufactured items start far more certain (about −10 against +1..+6 for living), so they move toward "living" (bicycle −8.5 → −2.1) but don't cross. Items that flipped had higher workspace loading (28.6 against 20.2), as the paper reports for its swaps.
+
+**Where it works.** Every band that includes layers 4–12 moved answers. Bands starting at 12 or later (12–20, 16–24, 20–27) did nothing at all: by then the category has already been computed from "wolf". The layer signatures agree: concepts start persisting across tokens around layer 9, and from about layer 21 the lens increasingly just predicts the next token (output agreement 0.35 at layer 20, 0.74 at layer 26).
+
+**What this changes.** Qwen 1.5B does have a usable workspace route, early in the network. Our read (layer 26) and writes (mostly 22) sat in its "mouth"; this run shows the "room" is around layers 4–12, and the paper's swap, not a single added write, is what steers it.
+
+[Protocol](SWAP_V9.md) · [Full rows](results/Qwen_Qwen2.5-1.5B-Instruct/swap_v9/full.json).
 
 ## V4: role-bound working space (built, not run)
 
