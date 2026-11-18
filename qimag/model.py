@@ -89,9 +89,12 @@ class StubTokenizer:
         self.vocab = vocab
         self.idx = {w: i for i, w in enumerate(vocab)}
 
-    def __call__(self, text, add_special_tokens=False):
-        ids = [self.idx.get(p, self.idx["<unk>"]) for p in self.PAT.findall(text)]
-        return {"input_ids": ids}
+    def __call__(self, text, add_special_tokens=False, return_offsets_mapping=False):
+        matches = list(self.PAT.finditer(text))
+        result = {"input_ids": [self.idx.get(m.group(), self.idx["<unk>"]) for m in matches]}
+        if return_offsets_mapping:
+            result["offset_mapping"] = [m.span() for m in matches]
+        return result
 
     def apply_chat_template(self, msgs, tokenize=False, add_generation_prompt=True, **kw):
         s = "".join(f"<|im_start|>{m['role']}\n{m['content']}<|im_end|>\n" for m in msgs)

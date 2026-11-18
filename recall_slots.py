@@ -24,7 +24,7 @@ SEED = 20261118
 
 
 def prompt_parts(lm, order, filler, words=None):
-    """Use actual chat tokenization. Reject any ambiguous token boundary."""
+    """Locate writes and the first question word in the fully tokenized chat."""
     prefix = "Remember the word stored under each label."
     marker_ends = []
     for label in order:
@@ -34,6 +34,7 @@ def prompt_parts(lm, order, filler, words=None):
         else:
             prefix += " " + words[label]
     prefix += "\n\n" + filler
+    base = None
     questions = {}
     for label in LABELS:
         user = prefix + "\n\nWhich word was stored under " + label + "? Answer with one word."
@@ -41,16 +42,25 @@ def prompt_parts(lm, order, filler, words=None):
         before, found, _ = rendered.partition(user)
         if not found:
             raise ValueError("Chat template changed the user text")
-        base = lm.encode(before + prefix)
-        full = lm.encode(rendered)
-        if full[:len(base)] != base:
-            raise ValueError("Tokenizer merged across the question boundary")
-        questions[label] = full[len(base):]
-    markers = [len(lm.encode(before + prefix[:end])) - 1 for end in marker_ends]
-    if words is None:
-        for pos, label in zip(markers, order):
-            if not lm.decode(base[:pos + 1]).endswith(label + ":"):
-                raise ValueError("Marker did not end at expected token")
+        tokens = lm.tok(rendered, add_special_tokens=False, return_offsets_mapping=True)
+        offsets = tokens["offset_mapping"]
+        full = tokens["input_ids"]
+
+        def token_at(char):
+            for index, (start, end) in enumerate(offsets):
+                if start <= char < end:
+                    return index
+            raise ValueError(f"No token covers prompt character {char}")
+
+        # Punctuation may share a token with following newlines. Cache all
+        # complete tokens before "Which" and write on the token containing ":".
+        split = token_at(len(before) + len(prefix) + len("\n\n"))
+        positions = [token_at(len(before) + end - 1) for end in marker_ends]
+        if base is None:
+            base, markers = full[:split], positions
+        elif base != full[:split] or markers != positions:
+            raise ValueError("Questions produced different pre-question tokens or markers")
+        questions[label] = full[split:]
     return base, markers, questions
 
 
