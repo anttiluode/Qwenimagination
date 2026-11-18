@@ -181,6 +181,26 @@ Every write pushed every item toward "living" by 1–7 units, whatever it carrie
 
 [Protocol and predictions](CATEGORY_V8.md) · [Full rows](results/Qwen_Qwen2.5-1.5B-Instruct/category_v8/full.json).
 
+## Rereading the paper: what V2–V8 actually tested
+
+Gurnee et al. validate a different intervention from the one these experiments used. They **swap** two lens coordinates, **clamped** at every position across the **workspace band** (from about a third of the way in to shortly before the output), on a concept that is **already present**. Their two-hop swaps (spider → ant turns "8 legs" into "6") work 54–70% of the time. The last few layers are "motor": lens content there drives the imminent output and isn't available for further processing (§4.1). Content travels between tokens through broadcast heads in the first half of the band (§4.3.2).
+
+Our read was at layer 26 of 28 and our writes were single additions, mostly at layer 22, into an empty slot. Seen that way:
+
+- **V2** reproduces the paper's injected-thought result: late "about to say" content, written at the answer, gets said.
+- **V5/V6**: a single write at layer 22 sits after the broadcast heads, so later tokens don't fetch it.
+- **V8**: the paper's two-hop test, done with a weaker method. Even the clean word direction failed.
+
+None of V2–V8 tested the paper's method on Qwen. V9 does.
+
+## V9: the paper's swap on Qwen 1.5B (ready to run)
+
+Find Qwen's workspace band from the paper's signatures. Then, on "Item: wolf" + "is it a living thing?", swap *wolf* ↔ *chair* (other category) or *wolf* ↔ *lion* (same category), clamped across the band. If cross swaps flip the answer and same-category swaps don't, a 1.5B Qwen has a workspace that a swapped-in concept can steer. Whether small models do is one of the paper's open questions.
+
+    python3.13 swap_v9.py
+
+[Protocol and predictions](SWAP_V9.md).
+
 ## V4: role-bound working space (built, not run)
 
 *Status note (Nov 18):* not run on Qwen, and as built it couldn't test
